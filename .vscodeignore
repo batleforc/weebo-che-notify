@@ -1,0 +1,14 @@
+.tasks/**
+.hooks/**
+.claude/**
+.gitignore
+.vscodeignore
+Taskfile.yaml
+cog.toml
+mise.toml
+mise.lock
+devfile.yaml
+CLAUDE.md
+CHANGELOG.md
+dist/**
+docs/**

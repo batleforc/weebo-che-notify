@@ -1,0 +1,28 @@
+version: "3"
+
+includes:
+  mise: ./.tasks/mise.yaml
+  vsix: ./.tasks/vsix.yaml
+
+tasks:
+  init:
+    desc: "Init folder"
+    cmds:
+      - mise upgrade
+      - cog install-hook -a -o
+  recu:
+    desc: "Recuring job like regenerating Swagger spec"
+    cmds:
+      - echo "Rien à régénérer pour cette extension"
+
+  lint:
+    desc: "Linting your project to apply good practice"
+    cmds:
+      - node --check extension.js
+      - node --check bin/ide-notify
+
+  audit:
+    desc: "Audit sécurité : dépendances runtime (aucune à ce jour) et secrets"
+    cmds:
+      - echo "Aucune dépendance runtime dans l'extension — à réévaluer si package.json déclare des dependencies"
+      - gitleaks git --redact --verbose

@@ -1,0 +1,25 @@
+version: "3"
+
+tasks:
+  build:
+    desc: "Package l'extension en .vsix dans dist/"
+    cmds:
+      - mkdir -p dist
+      - npx --yes @vscode/vsce package --no-dependencies -o dist/weebo-bridge-notify.vsix
+
+  install:
+    desc: "Build puis installe le .vsix dans code-oss (recharger la fenêtre ensuite)"
+    deps: [build]
+    cmds:
+      - code-oss --install-extension dist/weebo-bridge-notify.vsix --force
+
+  test:
+    desc: "Envoie une notification de test via le canal ~/.ide-notify"
+    cmds:
+      - node bin/ide-notify info "🔔 Test depuis task vsix:test"
+
+  publish:
+    desc: "Publie le .vsix sur le registre Open VSX perso (OVSX_REGISTRY_URL et OVSX_PAT requis)"
+    deps: [build]
+    cmds:
+      - npx --yes ovsx publish dist/weebo-bridge-notify.vsix -r $OVSX_REGISTRY_URL -p $OVSX_PAT

@@ -1,0 +1,49 @@
+{
+  "name": "weebo-bridge-notify",
+  "displayName": "Weebo Bridge Notify",
+  "description": "Pont de notifications pour workspace Eclipse Che : affiche dans code-oss (et en notification OS via le navigateur) les messages écrits dans ~/.ide-notify par n'importe quel process du pod, dont les hooks Claude Code.",
+  "publisher": "batleforc",
+  "version": "0.2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/batleforc/weeboBridgeNotify"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": ["Other"],
+  "main": "./extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "weeboBridgeNotify.test",
+        "title": "Weebo Bridge Notify: Envoyer une notification de test"
+      },
+      {
+        "command": "weeboBridgeNotify.openOsBridge",
+        "title": "Weebo Bridge Notify: Ouvrir le pont notifications OS (navigateur)"
+      }
+    ],
+    "configuration": {
+      "title": "Weebo Bridge Notify",
+      "properties": {
+        "weeboBridgeNotify.file": {
+          "type": "string",
+          "default": "",
+          "description": "Fichier surveillé pour les notifications. Vide = ~/.ide-notify"
+        },
+        "weeboBridgeNotify.pollInterval": {
+          "type": "number",
+          "default": 1000,
+          "description": "Intervalle de surveillance du fichier en millisecondes"
+        },
+        "weeboBridgeNotify.osBridge.autoOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Rouvre automatiquement le pont notifications OS au démarrage de la fenêtre (nécessaire pour recevoir les notifications navigateur sans action manuelle)"
+        }
+      }
+    }
+  }
+}

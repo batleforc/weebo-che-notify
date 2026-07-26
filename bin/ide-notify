@@ -1,0 +1,135 @@
+#!/usr/bin/env node
+// Écrit une notification dans le fichier surveillé par l'extension weebo-bridge-notify.
+//
+// Usages :
+//   ide-notify [info|warn|error] <message...>     — depuis un terminal ou un script
+//   echo '{"message": "..."}' | ide-notify        — hook style Claude Code (JSON sur stdin)
+//   ide-notify '{"type": "...", ...}'             — notify style Codex CLI (JSON en argument)
+//
+// Call to action (options répétables, format "Label=valeur") :
+//   --action-url   "Voir la CI=https://..."       — ouvre une URL
+//   --action-file  "Ouvrir le log=/tmp/log:42"    — ouvre un fichier (ligne optionnelle après ':')
+//   --action-shell "Relancer=task build"          — lance la commande dans un terminal visible
+//   --action-cmd   "Recharger=workbench.action.reloadWindow" — commande VS Code
+//   --action-copy  "Copier le token=abc123"       — copie la valeur dans le presse-papier
+//   --action       '{"label":"...","type":"...",...}'        — action en JSON brut
+//
+// Variables d'environnement :
+//   IDE_NOTIFY_FILE    — fichier cible (défaut : ~/.ide-notify)
+//   IDE_NOTIFY_LEVEL   — niveau par défaut en mode JSON (info|warn|error)
+//   IDE_NOTIFY_SOURCE  — préfixe du message en mode JSON (défaut : déduit du payload)
+
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const FILE = process.env.IDE_NOTIFY_FILE || path.join(os.homedir(), '.ide-notify');
+const LEVELS = ['info', 'warn', 'error'];
+
+function append(level, message, actions) {
+  const msg = message.replace(/\r?\n/g, ' ').trim();
+  const line = actions && actions.length
+    ? JSON.stringify({ level, message: msg, actions })
+    : `${level}|${msg}`;
+  fs.appendFileSync(FILE, line + '\n');
+}
+
+// Transforme "Label=valeur" (+ type d'option) en objet action pour l'extension.
+function parseActionOption(option, value) {
+  const i = value.indexOf('=');
+  const label = i === -1 ? value : value.slice(0, i);
+  const val = i === -1 ? '' : value.slice(i + 1);
+  if (option === '--action') {
+    try { const a = JSON.parse(value); return a && a.label ? a : null; } catch (e) { return null; }
+  }
+  if (!label || !val) return null;
+  if (option === '--action-url') return { label, type: 'url', url: val };
+  if (option === '--action-shell') return { label, type: 'shell', command: val };
+  if (option === '--action-cmd') return { label, type: 'command', command: val };
+  if (option === '--action-copy') return { label, type: 'copy', text: val };
+  if (option === '--action-file') {
+    const m = val.match(/^(.*?):(\d+)$/);
+    return m ? { label, type: 'file', path: m[1], line: parseInt(m[2], 10) } : { label, type: 'file', path: val };
+  }
+  return null;
+}
+
+const ACTION_OPTIONS = ['--action', '--action-url', '--action-file', '--action-shell', '--action-cmd', '--action-copy'];
+
+// Transforme un payload JSON (hook Claude Code, notify Codex, ou format libre
+// {level, title, message}) en notification. Conçu pour rester compatible avec
+// les futurs hooks : l'événement est repris dans le message quand il est connu.
+function notifyFromPayload(payload, rawFallback) {
+  let level = LEVELS.includes(process.env.IDE_NOTIFY_LEVEL) ? process.env.IDE_NOTIFY_LEVEL : 'info';
+  if (LEVELS.includes(payload.level)) level = payload.level;
+
+  const event = payload.hook_event_name || payload.type || '';
+  let body = payload.message || payload.title || payload['last-assistant-message'] || payload.last_assistant_message || '';
+  if (payload.title && payload.message) body = `${payload.title} — ${payload.message}`;
+  if (event === 'Stop' || event === 'agent-turn-complete') body = body || 'tâche terminée';
+  if (/permission|approval/i.test(body + event)) level = LEVELS.includes(payload.level) ? level : 'warn';
+
+  let source = process.env.IDE_NOTIFY_SOURCE || payload.source || '';
+  if (!source) {
+    if (payload.hook_event_name) source = 'Claude Code';
+    else if (payload.type) source = 'Codex';
+    else source = 'IA';
+  }
+
+  const suffix = event && event !== 'Notification' ? ` [${event}]` : '';
+  const actions = Array.isArray(payload.actions) ? payload.actions.filter((a) => a && a.label) : [];
+  append(level, `${source}${suffix} : ${body || rawFallback || 'notification'}`, actions);
+}
+
+const rawArgs = process.argv.slice(2);
+
+// Extraction des options --action* (chacune consomme la valeur qui la suit)
+const actions = [];
+const args = [];
+for (let i = 0; i < rawArgs.length; i++) {
+  if (ACTION_OPTIONS.includes(rawArgs[i]) && i + 1 < rawArgs.length) {
+    const action = parseActionOption(rawArgs[i], rawArgs[i + 1]);
+    if (action) actions.push(action);
+    else console.error(`ide-notify: option ${rawArgs[i]} ignorée (attendu "Label=valeur")`);
+    i++;
+  } else {
+    args.push(rawArgs[i]);
+  }
+}
+
+if (args.length > 0) {
+  // JSON en argument (ex : notify de Codex CLI passe le payload en argv)
+  const jsonArg = args.find((a) => a.trimStart().startsWith('{'));
+  if (jsonArg) {
+    try {
+      notifyFromPayload(JSON.parse(jsonArg), jsonArg);
+      process.exit(0);
+    } catch (e) {
+      // pas du JSON valide : traité comme message texte ci-dessous
+    }
+  }
+  let level = 'info';
+  if (LEVELS.includes(args[0])) level = args.shift();
+  if (args.length > 0 || actions.length > 0) append(level, args.join(' '), actions);
+  process.exit(0);
+}
+
+if (actions.length > 0) {
+  // Uniquement des options --action* : notification sans texte additionnel
+  append('info', '', actions);
+  process.exit(0);
+}
+
+// JSON (ou texte brut) sur stdin — format des hooks Claude Code
+let data = '';
+process.stdin.on('data', (c) => { data += c; });
+process.stdin.on('end', () => {
+  const raw = data.trim();
+  if (!raw) return;
+  try {
+    notifyFromPayload(JSON.parse(raw), raw);
+  } catch (e) {
+    const level = LEVELS.includes(process.env.IDE_NOTIFY_LEVEL) ? process.env.IDE_NOTIFY_LEVEL : 'info';
+    append(level, raw);
+  }
+});
