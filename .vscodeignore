@@ -9,6 +9,6 @@ mise.toml
 mise.lock
 devfile.yaml
 CLAUDE.md
-CHANGELOG.md
 dist/**
 docs/**
+scripts/**

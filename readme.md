@@ -1,5 +1,9 @@
 # weebo-bridge-notify
 
+<p align="center">
+  <img src="icon.png" width="140" alt="Logo Weebo Bridge Notify — cloche de notification">
+</p>
+
 Extension code-oss / VS Code pour workspace [Eclipse Che](https://eclipse.dev/che/) : un pont de notifications entre le pod et l'utilisateur.
 
 N'importe quel process du pod (script, CI locale, hook d'une IA — Claude Code, Codex, Gemini CLI...) écrit une ligne dans `~/.ide-notify`, et l'extension :
@@ -52,13 +56,13 @@ Toutes les intégrations (Claude Code, Codex CLI, outils sans hook dédié, scri
 
 Les webviews de che-code sont servies depuis la même origine que l'IDE : une webview peut donc utiliser l'API `Notification` de Chrome avec la permission du site.
 
-1. `F1` → `Weebo Bridge Notify: Ouvrir le pont notifications OS (navigateur)`.
+Le pont vit dans une vue du **panneau du bas** (onglet « Bridge Notify », à côté du terminal) — pas d'onglet d'éditeur.
+
+1. `F1` → `Weebo Bridge Notify: Ouvrir le pont notifications OS (navigateur)` (ou cliquer l'onglet « Bridge Notify » du panneau).
 2. Cliquer sur « Activer les notifications navigateur » et accepter la permission Chrome.
-3. Laisser l'onglet du panneau ouvert (l'arrière-plan suffit, `retainContextWhenHidden` est actif).
+3. La vue peut ensuite être masquée et le panneau fermé : le relais continue en arrière-plan (`retainContextWhenHidden`).
 
-Pour rouvrir le pont automatiquement à chaque démarrage : activer le setting `weeboBridgeNotify.osBridge.autoOpen`.
-
-**Limite** : si le panneau du pont est fermé, seules les popups IDE restent — le relais OS s'arrête.
+Avec le setting `weeboBridgeNotify.osBridge.autoOpen`, la vue est résolue silencieusement à chaque démarrage puis le panneau est refermé : rien de visible, le pont tourne quand même.
 
 ## Tasks
 

@@ -5,7 +5,8 @@ const path = require('path');
 
 let position = 0;
 let watchedFile = null;
-let panel = null;
+let bridgeWebview = null;
+let autoResolvePending = false;
 
 function config() {
   return vscode.workspace.getConfiguration('weeboBridgeNotify');
@@ -17,7 +18,7 @@ function notifyFile() {
 }
 
 function forwardToBridge(level, message, actions) {
-  if (panel) panel.webview.postMessage({ type: 'notify', level, message, actions: actions || [] });
+  if (bridgeWebview) bridgeWebview.postMessage({ type: 'notify', level, message, actions: actions || [] });
 }
 
 // Exécute un call to action attaché à une notification.
@@ -136,8 +137,9 @@ function bridgeHtml() {
 </head>
 <body>
   <h3>Pont notifications OS</h3>
-  <p>Ce panneau relaie les notifications de l'IDE vers le navigateur (API Notification).
-  Il doit rester ouvert (même en arrière-plan) pour que le relais fonctionne.</p>
+  <p>Cette vue relaie les notifications de l'IDE vers le navigateur (API Notification).
+  Une fois affichée une première fois, elle peut être masquée ou le panneau fermé :
+  le relais continue en arrière-plan.</p>
   <button id="grant">Activer les notifications navigateur</button>
   <div id="status"></div>
   <p class="hint">Si la permission est bloquée, autorisez les notifications pour ce site
@@ -182,33 +184,43 @@ function bridgeHtml() {
 </html>`;
 }
 
-function openBridge(context, preserveFocus) {
-  if (panel) {
-    panel.reveal(undefined, true);
-    return;
-  }
-  panel = vscode.window.createWebviewPanel(
-    'weeboBridgeNotifyBridge',
-    'Weebo Bridge Notify — pont OS',
-    { viewColumn: vscode.ViewColumn.Beside, preserveFocus: !!preserveFocus },
-    { enableScripts: true, retainContextWhenHidden: true }
-  );
-  panel.webview.html = bridgeHtml();
-  panel.webview.onDidReceiveMessage((msg) => {
-    if (msg && msg.type === 'invokeAction') runAction(msg.action);
-  }, null, context.subscriptions);
-  panel.onDidDispose(() => { panel = null; }, null, context.subscriptions);
+// Le pont OS vit dans une vue webview du panneau du bas (à côté du terminal) :
+// grâce à retainContextWhenHidden, il continue de relayer même vue masquée
+// ou panneau fermé, une fois la vue résolue une première fois.
+const bridgeViewProvider = {
+  resolveWebviewView(view) {
+    bridgeWebview = view.webview;
+    view.webview.options = { enableScripts: true };
+    view.webview.html = bridgeHtml();
+    view.webview.onDidReceiveMessage((msg) => {
+      if (msg && msg.type === 'invokeAction') runAction(msg.action);
+    });
+    view.onDidDispose(() => { bridgeWebview = null; });
+    if (autoResolvePending) {
+      // Résolution silencieuse au démarrage : on referme le panneau une fois
+      // la webview vivante, le relais tourne en arrière-plan.
+      autoResolvePending = false;
+      setTimeout(() => vscode.commands.executeCommand('workbench.action.closePanel'), 1500);
+    }
+  },
+};
+
+function openBridge() {
+  return vscode.commands.executeCommand('weeboBridgeNotify.osBridgeView.focus');
 }
 
 function activate(context) {
   startWatching();
 
   context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider('weeboBridgeNotify.osBridgeView', bridgeViewProvider, {
+      webviewOptions: { retainContextWhenHidden: true },
+    }),
     vscode.commands.registerCommand('weeboBridgeNotify.test', () => {
       const file = notifyFile();
       fs.appendFileSync(file, 'info|🔔 Notification de test weebo-bridge-notify (commande weeboBridgeNotify.test)\n');
     }),
-    vscode.commands.registerCommand('weeboBridgeNotify.openOsBridge', () => openBridge(context, false)),
+    vscode.commands.registerCommand('weeboBridgeNotify.openOsBridge', () => openBridge()),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('weeboBridgeNotify.file') || e.affectsConfiguration('weeboBridgeNotify.pollInterval')) {
         startWatching();
@@ -218,7 +230,8 @@ function activate(context) {
   );
 
   if (config().get('osBridge.autoOpen')) {
-    openBridge(context, true);
+    autoResolvePending = true;
+    openBridge();
   }
 
   if (!context.globalState.get('weeboBridgeNotify.welcomed')) {

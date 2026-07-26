@@ -1,0 +1,30 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
+
+Ce fichier est maintenu par [Cocogitto](https://github.com/cocogitto/cocogitto) (`cog bump`) à partir de l'historique de commits ; les versions ci-dessous, antérieures au premier commit, ont été rédigées à la main.
+
+## [0.3.0] - 2026-07-26
+
+### Features
+
+- **(os-bridge)** le pont OS n'est plus un onglet d'éditeur mais une vue webview dans le panneau du bas (onglet « Bridge Notify », à côté du terminal) ; grâce à `retainContextWhenHidden`, le relais continue vue masquée ou panneau fermé
+- **(os-bridge)** avec `osBridge.autoOpen`, la vue est résolue silencieusement au démarrage puis le panneau est refermé : aucun élément d'interface ne reste visible
+
+## [0.2.0] - 2026-07-26
+
+### Features
+
+- **(actions)** support des call to action sur les notifications : boutons dans la popup IDE (`url`, `file`, `command`, `shell`, `copy`), options `--action-*` dans `bin/ide-notify`, champ `actions` accepté dans les payloads JSON des agents
+- **(os-bridge)** le clic sur la notification OS refocalise l'IDE et déclenche la première action
+- **(icon)** icône de l'extension (cloche + pastille, générée par script node sans dépendance)
+
+## [0.1.0] - 2026-07-26
+
+### Features
+
+- **(extension)** surveillance de `~/.ide-notify` : chaque ligne `info|`, `warn|` ou `error|` devient une popup native dans code-oss
+- **(os-bridge)** pont webview même origine que che-code relayant les notifications vers l'API Notification du navigateur (vraies notifications OS depuis un workspace Eclipse Che)
+- **(ide-notify)** binaire acceptant messages texte en arguments, JSON sur stdin (hooks Claude Code) ou JSON en argument (notify Codex CLI), avec détection du niveau et de la source
+- **(docs)** `docs/integrations.md` : branchement de Claude Code, Codex CLI, autres IA, scripts et Taskfile
+- **(template)** structure basée sur weebo-base : Taskfile, cocogitto, mise, devfile, hooks git
