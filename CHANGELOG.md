@@ -8,8 +8,9 @@ Ce fichier est maintenu par [Cocogitto](https://github.com/cocogitto/cocogitto) 
 
 ### Features
 
+- **(cli)** le CLI `ide-notify` est installé automatiquement dans `~/.local/bin` (PATH) à l'activation de l'extension (désactivable via `installCli`) — tout outil peut notifier avec `ide-notify ...` sans connaître le chemin de l'extension
 - **(os-bridge)** le pont OS n'est plus un onglet d'éditeur mais une vue webview dans le panneau du bas (onglet « Bridge Notify », à côté du terminal) ; grâce à `retainContextWhenHidden`, le relais continue vue masquée ou panneau fermé
-- **(os-bridge)** avec `osBridge.autoOpen`, la vue est résolue silencieusement au démarrage puis le panneau est refermé : aucun élément d'interface ne reste visible
+- **(os-bridge)** avec `osBridge.autoOpen`, la vue s'ouvre au démarrage pour armer le pont ; l'option `osBridge.autoClose` (désactivée par défaut) referme ensuite le panneau pour un fonctionnement sans interface visible
 
 ## [0.2.0] - 2026-07-26
 

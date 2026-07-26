@@ -19,14 +19,14 @@ Basé sur le template [weebo-base](https://github.com/batleforc/weebo-base).
 # Format brut : niveau|message (niveaux : info, warn, error)
 echo "info|Build terminé ✅" >> ~/.ide-notify
 
-# Ou via le binaire fourni
-bin/ide-notify warn "Attention, il se passe un truc"
+# Ou via le CLI — installé automatiquement dans ~/.local/bin (PATH) à l'activation de l'extension
+ide-notify warn "Attention, il se passe un truc"
 
 # Depuis un hook Claude Code (payload JSON sur stdin)
-echo '{"hook_event_name":"Notification","message":"Claude a besoin de toi"}' | bin/ide-notify
+echo '{"hook_event_name":"Notification","message":"Claude a besoin de toi"}' | ide-notify
 
 # Avec des call to action (boutons dans la popup IDE)
-bin/ide-notify info "Build terminé ✅" --action-url "Voir la CI=https://..." --action-shell "Relancer=task build"
+ide-notify info "Build terminé ✅" --action-url "Voir la CI=https://..." --action-shell "Relancer=task build"
 ```
 
 - `info` et `warn` s'effacent seuls, `error` reste affichée jusqu'à fermeture.
@@ -42,7 +42,7 @@ Le binaire `bin/ide-notify` accepte le JSON des agents **sur stdin** (hooks Clau
     "Notification": [
       {
         "hooks": [
-          { "type": "command", "command": "node /projects/weeboBridgeNotify/bin/ide-notify 2>/dev/null || true" }
+          { "type": "command", "command": "ide-notify 2>/dev/null || true" }
         ]
       }
     ]
@@ -62,7 +62,7 @@ Le pont vit dans une vue du **panneau du bas** (onglet « Bridge Notify », à c
 2. Cliquer sur « Activer les notifications navigateur » et accepter la permission Chrome.
 3. La vue peut ensuite être masquée et le panneau fermé : le relais continue en arrière-plan (`retainContextWhenHidden`).
 
-Avec le setting `weeboBridgeNotify.osBridge.autoOpen`, la vue est résolue silencieusement à chaque démarrage puis le panneau est refermé : rien de visible, le pont tourne quand même.
+Avec le setting `weeboBridgeNotify.osBridge.autoOpen`, la vue s'ouvre à chaque démarrage pour armer le pont. En ajoutant `weeboBridgeNotify.osBridge.autoClose`, le panneau se referme ensuite tout seul : rien de visible, le pont tourne quand même.
 
 ## Tasks
 
@@ -80,5 +80,7 @@ task audit          # Audit sécurité (dépendances + secrets)
 | Setting | Défaut | Description |
 |---|---|---|
 | `weeboBridgeNotify.file` | `~/.ide-notify` | Fichier surveillé |
+| `weeboBridgeNotify.installCli` | `true` | Installe le CLI `ide-notify` dans `~/.local/bin` à l'activation |
 | `weeboBridgeNotify.pollInterval` | `1000` | Intervalle de surveillance (ms) |
-| `weeboBridgeNotify.osBridge.autoOpen` | `false` | Rouvre le pont OS au démarrage |
+| `weeboBridgeNotify.osBridge.autoOpen` | `false` | Ouvre le pont OS au démarrage |
+| `weeboBridgeNotify.osBridge.autoClose` | `false` | Referme le panneau une fois le pont armé au démarrage |

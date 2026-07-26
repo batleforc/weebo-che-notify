@@ -58,10 +58,20 @@
           "default": 1000,
           "description": "Intervalle de surveillance du fichier en millisecondes"
         },
+        "weeboBridgeNotify.installCli": {
+          "type": "boolean",
+          "default": true,
+          "description": "Installe le CLI ide-notify dans ~/.local/bin (dans le PATH) à l'activation de l'extension, pour pouvoir notifier avec `ide-notify ...` depuis n'importe quel outil"
+        },
         "weeboBridgeNotify.osBridge.autoOpen": {
           "type": "boolean",
           "default": false,
-          "description": "Résout silencieusement le pont notifications OS au démarrage de la fenêtre (la vue est activée en arrière-plan puis le panneau refermé) — nécessaire pour recevoir les notifications navigateur sans action manuelle"
+          "description": "Ouvre la vue du pont notifications OS au démarrage de la fenêtre — nécessaire pour recevoir les notifications navigateur sans action manuelle"
+        },
+        "weeboBridgeNotify.osBridge.autoClose": {
+          "type": "boolean",
+          "default": false,
+          "description": "Après l'ouverture automatique au démarrage (osBridge.autoOpen), referme le panneau une fois le pont armé : le relais tourne alors sans interface visible"
         }
       }
     }

@@ -197,10 +197,12 @@ const bridgeViewProvider = {
     });
     view.onDidDispose(() => { bridgeWebview = null; });
     if (autoResolvePending) {
-      // Résolution silencieuse au démarrage : on referme le panneau une fois
-      // la webview vivante, le relais tourne en arrière-plan.
       autoResolvePending = false;
-      setTimeout(() => vscode.commands.executeCommand('workbench.action.closePanel'), 1500);
+      // Avec osBridge.autoClose, le panneau est refermé une fois la webview
+      // vivante : le relais tourne en arrière-plan sans interface visible.
+      if (config().get('osBridge.autoClose')) {
+        setTimeout(() => vscode.commands.executeCommand('workbench.action.closePanel'), 1500);
+      }
     }
   },
 };
@@ -209,8 +211,32 @@ function openBridge() {
   return vscode.commands.executeCommand('weeboBridgeNotify.osBridgeView.focus');
 }
 
+// Installe le CLI ide-notify (embarqué dans l'extension) dans ~/.local/bin,
+// présent dans le PATH : tout outil du pod peut alors appeler `ide-notify`
+// sans connaître le chemin de l'extension. Re-copié quand le contenu change
+// (mise à jour de l'extension).
+function installCli(context) {
+  if (!config().get('installCli')) return;
+  try {
+    const src = path.join(context.extensionPath, 'bin', 'ide-notify');
+    const destDir = path.join(os.homedir(), '.local', 'bin');
+    const dest = path.join(destDir, 'ide-notify');
+    const content = fs.readFileSync(src);
+    let current = null;
+    try { current = fs.readFileSync(dest); } catch (e) { /* pas encore installé */ }
+    if (!current || !current.equals(content)) {
+      fs.mkdirSync(destDir, { recursive: true });
+      fs.writeFileSync(dest, content, { mode: 0o755 });
+    }
+    fs.chmodSync(dest, 0o755);
+  } catch (e) {
+    vscode.window.showWarningMessage('weebo-bridge-notify : installation du CLI ide-notify échouée : ' + e.message);
+  }
+}
+
 function activate(context) {
   startWatching();
+  installCli(context);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider('weeboBridgeNotify.osBridgeView', bridgeViewProvider, {
