@@ -7,7 +7,7 @@
 Pont de notifications entre le pod d'un workspace [Eclipse Che](https://eclipse.dev/che/) et l'utilisateur, décliné en **deux extensions** :
 
 - une extension **code-oss / VS Code** (racine du repo) ;
-- un plugin **JetBrains** (IntelliJ IDEA, PyCharm, WebStorm... — dossier [`jetbrains/`](jetbrains/)).
+- un plugin **JetBrains** (IntelliJ IDEA, PyCharm, WebStorm... — dossier [`jetbrains/`](jetbrains/), [readme dédié](jetbrains/README.md)).
 
 N'importe quel process du pod (script, CI locale, hook d'une IA — Claude Code, Codex, Gemini CLI...) écrit une ligne dans `~/.ide-notify`, et l'extension :
 
@@ -55,6 +55,29 @@ Le binaire `bin/ide-notify` accepte le JSON des agents **sur stdin** (hooks Clau
 
 Toutes les intégrations (Claude Code, Codex CLI, outils sans hook dédié, scripts, Taskfile) sont détaillées avec exemples dans **[docs/integrations.md](docs/integrations.md)**.
 
+## Côté admin plateforme : notifier les devs dans leur IDE
+
+Le canal n'est qu'un fichier dans le pod : un **admin de la plateforme** (cluster Kubernetes / Eclipse Che) peut donc pousser une notification directement dans l'IDE des devs, sans mail ni canal de chat que personne ne lit en codant — là où le dev a les yeux, au moment où ça le concerne :
+
+- **maintenance planifiée** : « la plateforme redémarre à 18h, sauvegardez votre travail » ;
+- **incident en cours** : registre indisponible, CI dégradée, avec un bouton vers la page de statut ;
+- **cycle de vie du workspace** : arrêt imminent pour inactivité, quota de stockage bientôt atteint ;
+- **sécurité / conformité** : rotation de secrets à faire, image de base dépréciée à mettre à jour.
+
+Un `kubectl exec` suffit, workspace par workspace ou en masse via le label des pods DevWorkspace :
+
+```bash
+# Prévenir tous les workspaces démarrés d'une maintenance
+kubectl get pods -A -l controller.devfile.io/devworkspace_name \
+  --no-headers -o custom-columns=NS:.metadata.namespace,POD:.metadata.name |
+while read ns pod; do
+  kubectl exec -n "$ns" "$pod" -- sh -c \
+    'echo "warn|⚠️ Maintenance plateforme à 18h00 — sauvegardez et poussez votre travail" >> ~/.ide-notify'
+done
+```
+
+Les lignes JSON avec `actions` fonctionnent aussi (bouton « Voir le statut » vers la page d'incident, `shell` pour lancer une commande de remédiation...), et le message atteint le dev quel que soit son IDE — code-oss/VS Code ou JetBrains — puisque les deux extensions écoutent le même fichier. Si le pod a plusieurs conteneurs, cibler avec `-c` celui dont le HOME porte le `~/.ide-notify` surveillé (celui de l'IDE).
+
 ## Pont notifications OS (navigateur)
 
 Les webviews de che-code sont servies depuis la même origine que l'IDE : une webview peut donc utiliser l'API `Notification` de Chrome avec la permission du site.
@@ -69,7 +92,7 @@ Avec le setting `weeboBridgeNotify.osBridge.autoOpen`, la vue s'ouvre à chaque 
 
 ## Plugin JetBrains
 
-Le dossier [`jetbrains/`](jetbrains/) contient le plugin équivalent pour les IDE JetBrains (IntelliJ IDEA, PyCharm, WebStorm, GoLand...), en Kotlin avec l'[IntelliJ Platform Gradle Plugin](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html). Il partage le même canal `~/.ide-notify` et embarque le même CLI `bin/ide-notify` (copié au build) :
+Le dossier [`jetbrains/`](jetbrains/) contient le plugin équivalent pour les IDE JetBrains (IntelliJ IDEA, PyCharm, WebStorm, GoLand...), en Kotlin avec l'[IntelliJ Platform Gradle Plugin](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html) — voir aussi son [readme dédié](jetbrains/README.md). Il partage le même canal `~/.ide-notify` et embarque le même CLI `bin/ide-notify` (copié au build) :
 
 - chaque ligne devient une notification native (balloon) — `info`/`warn` s'effacent seules, `error` reste affichée ;
 - les call to action deviennent des boutons de la notification : `url`, `file` (+ `line`), `shell` (terminal intégré), `copy`, et `command` qui exécute une **action IDE par id** (équivalent JetBrains des commandes VS Code, ex. `CheckForUpdate`) ;
