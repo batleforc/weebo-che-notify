@@ -4,12 +4,15 @@
   <img src="icon.png" width="140" alt="Logo Weebo Bridge Notify — cloche de notification">
 </p>
 
-Extension code-oss / VS Code pour workspace [Eclipse Che](https://eclipse.dev/che/) : un pont de notifications entre le pod et l'utilisateur.
+Pont de notifications entre le pod d'un workspace [Eclipse Che](https://eclipse.dev/che/) et l'utilisateur, décliné en **deux extensions** :
+
+- une extension **code-oss / VS Code** (racine du repo) ;
+- un plugin **JetBrains** (IntelliJ IDEA, PyCharm, WebStorm... — dossier [`jetbrains/`](jetbrains/)).
 
 N'importe quel process du pod (script, CI locale, hook d'une IA — Claude Code, Codex, Gemini CLI...) écrit une ligne dans `~/.ide-notify`, et l'extension :
 
 1. affiche une popup native dans l'IDE (en bas à droite) ;
-2. optionnellement, relaie vers une **notification OS** via l'API Notification du navigateur (pont OS).
+2. côté VS Code uniquement, relaie optionnellement vers une **notification OS** via l'API Notification du navigateur (pont OS).
 
 Basé sur le template [weebo-base](https://github.com/batleforc/weebo-base).
 
@@ -64,16 +67,45 @@ Le pont vit dans une vue du **panneau du bas** (onglet « Bridge Notify », à c
 
 Avec le setting `weeboBridgeNotify.osBridge.autoOpen`, la vue s'ouvre à chaque démarrage pour armer le pont. En ajoutant `weeboBridgeNotify.osBridge.autoClose`, le panneau se referme ensuite tout seul : rien de visible, le pont tourne quand même.
 
+## Plugin JetBrains
+
+Le dossier [`jetbrains/`](jetbrains/) contient le plugin équivalent pour les IDE JetBrains (IntelliJ IDEA, PyCharm, WebStorm, GoLand...), en Kotlin avec l'[IntelliJ Platform Gradle Plugin](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html). Il partage le même canal `~/.ide-notify` et embarque le même CLI `bin/ide-notify` (copié au build) :
+
+- chaque ligne devient une notification native (balloon) — `info`/`warn` s'effacent seules, `error` reste affichée ;
+- les call to action deviennent des boutons de la notification : `url`, `file` (+ `line`), `shell` (terminal intégré), `copy`, et `command` qui exécute une **action IDE par id** (équivalent JetBrains des commandes VS Code, ex. `CheckForUpdate`) ;
+- le CLI `ide-notify` est installé dans `~/.local/bin` au démarrage (désactivable) ;
+- réglages dans `Settings → Tools → Weebo Bridge Notify` (fichier, intervalle, installation du CLI) ;
+- notification de test via `Tools → Weebo Bridge Notify: Envoyer une notification de test`.
+
+Le pont OS navigateur n'existe pas côté JetBrains : hors navigateur, l'IDE (ou le client JetBrains Gateway) affiche déjà ses notifications sur la machine de l'utilisateur.
+
+Compatibilité : IDE JetBrains **2026.1 et plus** (`since-build 261`) ; l'action `shell` utilise la nouvelle API terminal (module `intellij.terminal.frontend`).
+
+Build : JDK 21 requis (ex. `mise use java@temurin-21`), puis `task jetbrains:build` produit `dist/weebo-bridge-notify-<version>.zip`, à installer via `Settings → Plugins → ⚙️ → Install Plugin from Disk`.
+
 ## Tasks
 
 ```bash
-task vsix:build     # Package l'extension en dist/weebo-bridge-notify.vsix
-task vsix:install   # Build + installe dans code-oss (recharger la fenêtre ensuite)
-task vsix:test      # Envoie une notification de test
-task vsix:publish   # Publie sur le registre Open VSX perso (OVSX_REGISTRY_URL, OVSX_PAT)
-task lint           # Vérifie la syntaxe des sources
-task audit          # Audit sécurité (dépendances + secrets)
+task vsix:build        # Package l'extension en dist/weebo-bridge-notify.vsix
+task vsix:install      # Build + installe dans code-oss (recharger la fenêtre ensuite)
+task vsix:test         # Envoie une notification de test
+task vsix:publish      # Publie sur le registre Open VSX perso (OVSX_REGISTRY_URL, OVSX_PAT)
+task jetbrains:build   # Package le plugin JetBrains en .zip dans dist/ (JDK 21 requis)
+task jetbrains:verify  # Plugin Verifier (compatibilité API JetBrains)
+task jetbrains:test    # Envoie une notification de test (même canal)
+task jetbrains:clean   # Supprime les dossiers de build Gradle
+task lint              # Vérifie la syntaxe des sources
+task audit             # Audit sécurité (dépendances + secrets)
 ```
+
+## CI/CD
+
+Au push d'un tag `v*` (posé par `cog bump`), le workflow [`release.yaml`](.github/workflows/release.yaml) builde les deux extensions (outillage installé via `mise.toml`, builds via les tasks du repo) et publie une **pre-release GitHub** avec les deux artefacts, versionnés sur le tag :
+
+- `weebo-bridge-notify-<version>.vsix` (code-oss / VS Code) ;
+- `weebo-bridge-notify-<version>.zip` (JetBrains).
+
+La release reste en pre-release : la passer en release stable est une action manuelle sur GitHub.
 
 ## Settings
 
@@ -84,3 +116,5 @@ task audit          # Audit sécurité (dépendances + secrets)
 | `weeboBridgeNotify.pollInterval` | `1000` | Intervalle de surveillance (ms) |
 | `weeboBridgeNotify.osBridge.autoOpen` | `false` | Ouvre le pont OS au démarrage |
 | `weeboBridgeNotify.osBridge.autoClose` | `false` | Referme le panneau une fois le pont armé au démarrage |
+
+Côté JetBrains, les trois premiers réglages existent aussi, dans `Settings → Tools → Weebo Bridge Notify` (les réglages `osBridge.*` n'ont pas d'équivalent).

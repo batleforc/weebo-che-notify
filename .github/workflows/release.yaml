@@ -1,0 +1,48 @@
+name: Release
+
+# Au push d'un tag v* (posé par `cog bump`) : builde les deux extensions
+# et publie une pre-release GitHub avec le .vsix et le .zip JetBrains.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  pre-release:
+    name: Build des deux extensions + pre-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Installe l'outillage déclaré dans mise.toml (node, task, java temurin-21...)
+      - uses: jdx/mise-action@v2
+
+      # Cache Gradle (utilisé par ./gradlew via task jetbrains:build)
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Aligner les versions sur le tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          npm version --no-git-tag-version --allow-same-version "$VERSION"
+
+      - name: Build extension VS Code (.vsix)
+        run: |
+          task vsix:build
+          mv dist/weebo-bridge-notify.vsix "dist/weebo-bridge-notify-${VERSION}.vsix"
+
+      - name: Build plugin JetBrains (.zip)
+        run: task jetbrains:build -- "-PpluginVersion=${VERSION}"
+
+      - name: Pre-release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/weebo-bridge-notify-*.vsix
+            dist/weebo-bridge-notify-*.zip

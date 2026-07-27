@@ -1,6 +1,6 @@
 # Intégrations — brancher une IA (ou n'importe quel outil) sur weebo-bridge-notify
 
-Le principe est toujours le même : **tout ce qui peut exécuter une commande shell peut notifier**. Il suffit d'écrire une ligne `niveau|message` dans `~/.ide-notify`, directement ou via `bin/ide-notify` qui sait aussi parser les payloads JSON des agents.
+Le principe est toujours le même : **tout ce qui peut exécuter une commande shell peut notifier**. Il suffit d'écrire une ligne `niveau|message` dans `~/.ide-notify`, directement ou via `bin/ide-notify` qui sait aussi parser les payloads JSON des agents. Le canal est le même pour les deux extensions (code-oss/VS Code et plugin JetBrains) : une intégration branchée une fois fonctionne dans les deux IDE.
 
 ```bash
 # Les trois formes équivalentes
@@ -108,7 +108,7 @@ Ou en écrivant directement une ligne JSON dans `~/.ide-notify` (les agents peuv
 {"level":"warn","message":"PR prête à relire","actions":[{"label":"Ouvrir la PR","type":"url","url":"https://github.com/..."}]}
 ```
 
-Types d'action : `url` (ouvre le lien), `file` (`path` + `line` optionnelle), `command` (commande VS Code + `args`), `shell` (lance `command` dans un terminal visible), `copy` (`text` → presse-papier).
+Types d'action : `url` (ouvre le lien), `file` (`path` + `line` optionnelle), `command` (commande VS Code + `args` ; côté JetBrains, id d'une action IDE, sans `args`), `shell` (lance `command` dans un terminal visible), `copy` (`text` → presse-papier).
 
 Côté notification OS : les boutons ne sont pas affichables (limite de l'API Notification hors service worker), mais **cliquer sur la notification refocalise l'IDE et déclenche la première action** — elle sert donc de call to action par défaut.
 

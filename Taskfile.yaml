@@ -3,6 +3,7 @@ version: "3"
 includes:
   mise: ./.tasks/mise.yaml
   vsix: ./.tasks/vsix.yaml
+  jetbrains: ./.tasks/jetbrains.yaml
 
 tasks:
   init:

@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  build:
+    desc: "Package le plugin JetBrains en .zip dans dist/ (nécessite un JDK 21, ex. mise use java@temurin-21) ; args gradle après -- (ex. task jetbrains:build -- -PpluginVersion=1.2.3)"
+    dir: jetbrains
+    cmds:
+      - ./gradlew --console=plain buildPlugin {{.CLI_ARGS}}
+      - mkdir -p ../dist
+      - cp build/distributions/*.zip ../dist/
+
+  verify:
+    desc: "Vérifie le plugin JetBrains avec le Plugin Verifier (compatibilité API)"
+    dir: jetbrains
+    cmds:
+      - ./gradlew --console=plain verifyPlugin
+
+  test:
+    desc: "Envoie une notification de test via le canal ~/.ide-notify (reçue par les deux IDE)"
+    cmds:
+      - node bin/ide-notify info "🔔 Test depuis task jetbrains:test"
+
+  clean:
+    desc: "Supprime les dossiers de build Gradle (build/, .gradle/, .intellijPlatform/) qui peuvent grossir"
+    dir: jetbrains
+    cmds:
+      - rm -rf build .gradle .intellijPlatform .kotlin

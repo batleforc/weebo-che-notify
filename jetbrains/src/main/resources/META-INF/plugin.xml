@@ -1,0 +1,50 @@
+<idea-plugin>
+    <id>fr.batleforc.weebo-bridge-notify</id>
+    <name>Weebo Bridge Notify</name>
+    <vendor url="https://github.com/batleforc">batleforc</vendor>
+
+    <description><![CDATA[
+        Pont de notifications pour workspace Eclipse Che : affiche dans l'IDE JetBrains les
+        messages écrits dans <code>~/.ide-notify</code> par n'importe quel process du pod,
+        dont les hooks Claude Code, Codex CLI ou tout script.
+        <br/><br/>
+        Chaque ligne <code>info|...</code>, <code>warn|...</code> ou <code>error|...</code>
+        (ou une ligne JSON avec des call to action) devient une notification native, avec
+        boutons d'action : ouvrir une URL, un fichier à une ligne donnée, lancer une commande
+        dans un terminal, exécuter une action IDE ou copier un texte.
+        <br/><br/>
+        Le CLI <code>ide-notify</code> embarqué est installé automatiquement dans
+        <code>~/.local/bin</code> pour notifier depuis n'importe quel outil.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.plugins.terminal</depends>
+    <!-- L'action « shell » utilise la nouvelle API terminal (2026.1+), portée par ce module -->
+    <dependencies>
+        <module name="intellij.terminal.frontend"/>
+    </dependencies>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- info/warn s'effacent seuls, error reste affichée jusqu'à fermeture -->
+        <notificationGroup id="Weebo Bridge Notify" displayType="BALLOON"/>
+        <notificationGroup id="Weebo Bridge Notify Errors" displayType="STICKY_BALLOON"/>
+
+        <postStartupActivity implementation="fr.batleforc.weebobridgenotify.BridgeStartupActivity"/>
+
+        <applicationConfigurable
+            parentId="tools"
+            id="fr.batleforc.weebobridgenotify.settings"
+            displayName="Weebo Bridge Notify"
+            instance="fr.batleforc.weebobridgenotify.NotifySettingsConfigurable"/>
+    </extensions>
+
+    <actions>
+        <action
+            id="WeeboBridgeNotify.Test"
+            class="fr.batleforc.weebobridgenotify.TestNotificationAction"
+            text="Weebo Bridge Notify: Envoyer une notification de test"
+            description="Écrit une ligne de test dans le fichier surveillé (~/.ide-notify)">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

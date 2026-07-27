@@ -1,6 +1,7 @@
 .tasks/**
 .hooks/**
 .claude/**
+.github/**
 .gitignore
 .vscodeignore
 Taskfile.yaml
@@ -12,3 +13,4 @@ CLAUDE.md
 dist/**
 docs/**
 scripts/**
+jetbrains/**
