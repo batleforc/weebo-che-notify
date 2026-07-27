@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. See [conven
 
 Ce fichier est maintenu par [Cocogitto](https://github.com/cocogitto/cocogitto) (`cog bump`) à partir de l'historique de commits ; les versions ci-dessous, antérieures au premier commit, ont été rédigées à la main.
 
+- - -
+
 ## [0.3.0] - 2026-07-26
 
 ### Features

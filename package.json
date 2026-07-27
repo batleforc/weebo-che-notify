@@ -6,7 +6,7 @@
   "version": "0.3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/batleforc/weeboBridgeNotify"
+    "url": "https://github.com/batleforc/weebo-che-notify"
   },
   "engines": {
     "vscode": "^1.80.0"
