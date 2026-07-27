@@ -36,6 +36,7 @@ gitleaks git --pre-commit --redact --staged --verbose
 
 [commit_types]
 release = { changelog_title = "Releases" }
+docs = { changelog_title = "Doc" }
 
 [changelog]
 path = "CHANGELOG.md"
