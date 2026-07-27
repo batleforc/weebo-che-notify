@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file. See [conven
 Ce fichier est maintenu par [Cocogitto](https://github.com/cocogitto/cocogitto) (`cog bump`) à partir de l'historique de commits ; les versions ci-dessous, antérieures au premier commit, ont été rédigées à la main.
 
 - - -
+## [v0.5.0](https://github.com/batleforc/weebo-che-notify/compare/fbdcfa475e8664b77882b29fcedd8a50f2a3afaa..v0.5.0) - 2026-07-27
+#### Bug Fixes
+- licence - ([fbdcfa4](https://github.com/batleforc/weebo-che-notify/commit/fbdcfa475e8664b77882b29fcedd8a50f2a3afaa)) - Max Batleforc
+
+- - -
+
 ## [v0.4.0](https://github.com/batleforc/weebo-che-notify/compare/e0c2a73c4cac7ef4cbb2b3cc9f8b23c572333413..v0.4.0) - 2026-07-27
 #### Features
 - add to commit type - ([e90f7d2](https://github.com/batleforc/weebo-che-notify/commit/e90f7d28901098f6f1682bae3749c0cd516b4d9e)) - Max Batleforc

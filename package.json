@@ -4,7 +4,7 @@
   "description": "Pont de notifications pour workspace Eclipse Che : affiche dans code-oss (et en notification OS via le navigateur) les messages écrits dans ~/.ide-notify par n'importe quel process du pod, dont les hooks Claude Code.",
   "publisher": "batleforc",
   "license": "Apache-2.0",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/batleforc/weebo-che-notify"
