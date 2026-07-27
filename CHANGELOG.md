@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file. See [conven
 Ce fichier est maintenu par [Cocogitto](https://github.com/cocogitto/cocogitto) (`cog bump`) à partir de l'historique de commits ; les versions ci-dessous, antérieures au premier commit, ont été rédigées à la main.
 
 - - -
+## [v0.4.0](https://github.com/batleforc/weebo-che-notify/compare/e0c2a73c4cac7ef4cbb2b3cc9f8b23c572333413..v0.4.0) - 2026-07-27
+#### Features
+- add to commit type - ([e90f7d2](https://github.com/batleforc/weebo-che-notify/commit/e90f7d28901098f6f1682bae3749c0cd516b4d9e)) - Max Batleforc
+- plugin JetBrains équivalent à l'extension VS Code - ([e0c2a73](https://github.com/batleforc/weebo-che-notify/commit/e0c2a73c4cac7ef4cbb2b3cc9f8b23c572333413)) - Max Batleforc, Claude Fable 5
+#### Doc
+- readme jetbrains/ dédié et cas d'usage admin plateforme - ([eb64eb0](https://github.com/batleforc/weebo-che-notify/commit/eb64eb0d5ad8b899fe648a75afc79ae7c8354473)) - Max Batleforc, Claude Fable 5
+#### Miscellaneous Chores
+- (**release**) prépare la release 0.4.0 - ([f2940eb](https://github.com/batleforc/weebo-che-notify/commit/f2940eb90a38b180752ef3e01ab73c36fe69f2ea)) - Max Batleforc, Claude Fable 5
+
+- - -
+
 
 ## [0.3.0] - 2026-07-26
 
