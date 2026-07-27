@@ -18,9 +18,10 @@ repositories {
 dependencies {
     intellijPlatform {
         // Compilé contre la version minimale supportée (2026.1) pour garantir la compat API
+        // Distribution unifiée : IntelliJ IDEA Community (IC) n'est plus publiée depuis 2025.3
         // useInstaller = false : résolution via le repo Maven IntelliJ, l'API
         // installers ne référence pas encore les versions 2026 depuis ce réseau
-        intellijIdeaCommunity("2026.1.4") { useInstaller = false }
+        intellijIdea("2026.1.4") { useInstaller = false }
         // Le terminal est bundlé dans tous les IDE JetBrains : requis pour l'action « shell »
         bundledPlugin("org.jetbrains.plugins.terminal")
         bundledModule("intellij.terminal.frontend")
